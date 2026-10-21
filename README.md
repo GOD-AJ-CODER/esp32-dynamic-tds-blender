@@ -1,9 +1,5 @@
 # Smart Closed-Loop TDS Water Optimizer (ESP32)
 
-Built for our Digital Electronics Assessment. Instead of making another basic smart dustbin, we decided to tackle a real hardware flaw sitting inside almost every Indian home right now: how Reverse Osmosis (RO) water purifiers handle TDS (Total Dissolved Solids) and mineral blending.
-
----
-
 ## The Problem (And Why Current RO Systems Fail)
 
 Standard RO purifiers have two massive issues:
@@ -34,9 +30,11 @@ We replaced that manual screw with an **Automated Closed-Loop Proportional Feedb
 
 Instead of hosting a separate website, the entire frontend dashboard is packed into a single `index.html` file and stored directly inside the **ESP32's PROGMEM flash memory**. When the ESP32 connects to Wi-Fi, you type its IP address into any browser and it serves the live UI directly.
 
-[ DRAG AND DROP YOUR 1ST DASHBOARD IMAGE HERE ]
+<img width="1856" height="980" alt="Screenshot From 2026-10-21 20-49-43" src="https://github.com/user-attachments/assets/10a412d7-9a7d-4445-bedd-f1110bc05d0f" />
 
-[ DRAG AND DROP YOUR 2ND DASHBOARD IMAGE HERE ]
+<img width="1856" height="980" alt="Screenshot From 2026-10-21 20-49-26" src="https://github.com/user-attachments/assets/430182c9-d196-4e12-ba3b-f2e0ea9d222a" />
+
+
 
 ### Dashboard Features:
 * Live Chart.js telemetry tracking Output TDS (ppm) against the 75 ppm target line and Bypass Valve (%).
@@ -49,7 +47,8 @@ Instead of hosting a separate website, the entire frontend dashboard is packed i
 
 Because Tinkercad doesn't support 32-bit ESP32 boards, we built and verified the circuit topology on **Wokwi**.
 
-[ DRAG AND DROP YOUR WOKWI CIRCUIT IMAGE HERE ]
+<img width="811" height="740" alt="Screenshot From 2026-10-21 20-59-50" src="https://github.com/user-attachments/assets/da5088ae-2258-4e87-ac01-bfaafbae6265" />
+
 
 ### Deep Dive: How the Pins & Relay Actually Work
 
