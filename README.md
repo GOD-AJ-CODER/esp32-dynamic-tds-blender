@@ -1,5 +1,7 @@
 # Smart Closed-Loop TDS Water Optimizer (ESP32)
-
+![Hardware](https://img.shields.io/badge/Hardware-ESP32_WROOM-blue)
+![Logic](https://img.shields.io/badge/Logic-Proportional_Feedback-emerald)
+![Dashboard](https://img.shields.io/badge/Dashboard-100%25_Offline_Edge-darkgray)
 ## The Problem (And Why Current RO Systems Fail)
 
 Standard RO purifiers have two massive issues:
@@ -49,7 +51,13 @@ Because Tinkercad doesn't support 32-bit ESP32 boards, we built and verified the
 
 <img width="811" height="740" alt="Screenshot From 2026-10-21 20-59-50" src="https://github.com/user-attachments/assets/da5088ae-2258-4e87-ac01-bfaafbae6265" />
 
+## Why We Chose This Specific Hardware
 
+* **ESP32 vs. Standard Arduino Uno:** We deliberately chose the ESP32 over a classic Arduino Uno. An Uno is an 8-bit board with no built-in Wi-Fi and only 2KB of RAM. The ESP32 is a 32-bit powerhouse with native Wi-Fi, meaning it can host our entire HTML/JS web dashboard directly from its internal flash memory without needing an external cloud server, Vercel, or an SD card.
+* **Optocoupled Relay / MOSFET Driver:** Microcontrollers run on a highly sensitive 3.3V logic rail. Our physical water valve requires 12V and high current to move the internal mechanics. If we wired them together directly, the inductive back-voltage would instantly fry the ESP32. The relay acts as an electrical isolation barrier between the low-voltage brain and the high-voltage plumbing. 
+* **Analog TDS Probe:** We needed a sensor that gives a direct, instantaneous analog voltage correlated to the water's electrical conductivity. This allows us to use the ESP32's internal ADC1 (Analog-to-Digital Converter) and apply a 10x oversampling algorithm in C++ to smooth out any electrical pump noise before calculating the exact ppm.
+
+  
 ### Deep Dive: How the Pins & Relay Actually Work
 
 * **GPIO 34 (Input — Analog TDS Sensor):** 
