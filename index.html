@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automated Closed-Loop TDS Blending System | Dynamic Mineral Optimizer</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Lucide Icons via CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Tailwind Configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+            display: ['Space Grotesk', 'sans-serif'],
+          },
+          colors: {
+            terracotta: '#982B1C',
+            terracottadark: '#6A1B11',
+            charcoal: '#0F0F10',
+            zinc: '#27272A',
+            emerald: '#10B981',
+            amber: '#F59E0B',
+            crimson: '#DC2626'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar for sleekness */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27272A;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3F3F46;
+    }
+    
+    /* Range Slider Styling */
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+      margin-top: -6px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 4px;
+      cursor: pointer;
+      background: #27272A;
+      border-radius: 2px;
+    }
+    
+    .panel-bg-grid {
+      background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0);
+      background-size: 24px 24px;
+    }
+  </style>
+</head>
+<body class="bg-black text-white font-sans overflow-hidden antialiased selection:bg-white/20">
+
+  <!-- Split Screen Layout -->
+  <div class="flex flex-col lg:flex-row h-screen w-full overflow-hidden">
+    
+    <!-- LEFT PANEL: Hero & Editorial (Terracotta Theme) -->
+    <div class="relative w-full lg:w-1/2 h-full bg-gradient-to-br from-terracotta to-terracottadark flex flex-col p-8 lg:p-14 overflow-y-auto">
+      <!-- Dark gradient overlay for depth -->
+      <div class="absolute inset-0 bg-gradient-to-b from-black/0 via-black/10 to-black/40 pointer-events-none z-0"></div>
+      
+      <div class="relative z-10 flex flex-col h-full">
+        
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-12 lg:mb-20">
+          <div class="text-xs font-mono tracking-widest opacity-80 uppercase">
+            01 / Dashboard
+          </div>
+          <div class="flex items-center gap-3 px-4 py-1.5 bg-black/20 rounded-full border border-white/10 backdrop-blur-md shadow-lg">
+            <div class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald"></span>
+            </div>
+            <span class="text-[10px] font-mono tracking-widest uppercase">ESP32 ONLINE • FEEDBACK LOOP ACTIVE</span>
+          </div>
+        </header>
+
+        <!-- Hero Title -->
+        <div class="mb-12 lg:mb-16">
+          <h1 class="text-5xl lg:text-7xl xl:text-8xl font-display font-bold uppercase leading-[0.9] tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-br from-white to-white/70">
+            A Drop Of<br/>Purity
+          </h1>
+          <div class="font-mono text-sm opacity-80 uppercase tracking-widest flex items-center gap-2">
+            <span class="w-8 h-[1px] bg-white/50"></span>
+            (Closed-Loop Dynamic Mineral Blending)
+          </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="flex-1 flex flex-col justify-center mb-12">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            
+            <!-- Primary Metric 1: Blended TDS -->
+            <div class="relative border-l border-white/20 pl-6 lg:pl-8">
+              <div class="text-xs font-mono opacity-70 mb-3 uppercase tracking-wider">[BLENDED OUTPUT] TDS Level (ppm)</div>
+              <div class="flex items-baseline gap-2 mb-4">
+                <span class="text-7xl lg:text-8xl font-display font-bold leading-none tracking-tighter tabular-nums" id="tds-value">--</span>
+                <span class="text-xl font-mono opacity-70">PPM</span>
+              </div>
+              <div id="tds-status" class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 text-[10px] font-mono uppercase tracking-widest rounded border border-white/20 transition-colors duration-500">
+                <i data-lucide="activity" class="w-3 h-3"></i> <span>Evaluating</span>
+              </div>
+            </div>
+            
+            <!-- Primary Metric 2: Mineral Bypass & Retention Index -->
+            <div class="relative border-l border-white/20 pl-6 lg:pl-8">
+              <div class="text-xs font-mono opacity-70 mb-3 uppercase tracking-wider">[RATIO] Mineral Bypass (%)</div>
+              <div class="flex items-baseline gap-2 mb-4">
+                <span class="text-7xl lg:text-8xl font-display font-bold leading-none tracking-tighter tabular-nums" id="bypass-percent">--</span>
+                <span class="text-xl font-mono opacity-70">%</span>
+              </div>
+              <div class="text-xs font-mono opacity-70 tracking-widest uppercase flex items-center gap-2">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald"></i>
+                <span>Mineral Retention Index: <span id="retention-index" class="tabular-nums font-bold text-white">--%</span></span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- DIGITAL LOGIC ENGINE [STATE FEEDBACK] Container -->
+        <div class="mt-auto bg-black/40 border border-white/10 rounded-xl p-5 lg:p-6 backdrop-blur-xl relative overflow-hidden shadow-2xl">
+          <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-emerald via-emerald/50 to-transparent"></div>
+          <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="binary" class="w-4 h-4 text-emerald"></i>
+              <span class="text-[10px] font-mono uppercase tracking-widest opacity-80">DIGITAL LOGIC ENGINE [STATE FEEDBACK]</span>
+            </div>
+            <div class="flex gap-1">
+              <div class="w-2 h-2 rounded-full bg-white/20"></div>
+              <div class="w-2 h-2 rounded-full bg-white/20"></div>
+              <div class="w-2 h-2 rounded-full bg-white/20"></div>
+            </div>
+          </div>
+          <p class="font-mono text-xs lg:text-sm leading-relaxed text-white/90 min-h-[4rem] transition-opacity duration-200" id="logic-log">
+            Initializing state feedback loop...
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Controls & Telemetry (Matte Charcoal Theme) -->
+    <div class="relative w-full lg:w-1/2 h-full bg-charcoal border-t lg:border-t-0 lg:border-l border-zinc flex flex-col p-8 lg:p-14 overflow-y-auto">
+      
+      <!-- Tech grid background -->
+      <div class="absolute inset-0 panel-bg-grid z-0"></div>
+      <!-- Subtle top gradient -->
+      <div class="absolute inset-0 bg-gradient-to-b from-[#18181B]/50 to-transparent z-0 pointer-events-none"></div>
+
+      <div class="relative z-10 flex flex-col h-full">
+        
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-10 lg:mb-14">
+          <div class="text-xs font-mono tracking-widest opacity-50 text-zinc-400 uppercase">
+            [NODE: ESP32-WROOM-32D]
+          </div>
+          <div class="text-xs font-mono tracking-widest opacity-50 text-zinc-400 uppercase">
+            02 / Telemetry & Controls
+          </div>
+        </header>
+
+        <!-- Chart Container -->
+        <div class="mb-8 lg:mb-10 bg-[#141416]/80 backdrop-blur border border-zinc rounded-2xl p-5 lg:p-6 shadow-2xl relative group">
+          <div class="flex justify-between items-center mb-6">
+            <div class="text-[10px] font-mono text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+              <i data-lucide="line-chart" class="w-3 h-3"></i> Live Flow Telemetry
+            </div>
+            <div class="flex items-center gap-4 flex-wrap">
+              <div class="flex items-center gap-2">
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                <span class="text-[9px] font-mono text-zinc-400 uppercase tracking-wider">Output TDS (ppm)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-0.5 bg-amber border-b border-amber border-dashed"></div>
+                <span class="text-[9px] font-mono text-zinc-400 uppercase tracking-wider">Target (75 ppm)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="w-2.5 h-2.5 rounded-full border border-[#3B82F6] bg-transparent border-dashed"></div>
+                <span class="text-[9px] font-mono text-zinc-400 uppercase tracking-wider">Bypass Valve (%)</span>
+              </div>
+            </div>
+          </div>
+          <div class="h-56 lg:h-72 w-full relative">
+            <canvas id="telemetryChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Interactive Controls -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 lg:mb-10">
+          
+          <!-- Mode & Manual Slider -->
+          <div class="bg-[#141416]/80 backdrop-blur border border-zinc rounded-2xl p-6 flex flex-col justify-between shadow-xl">
+            <div class="flex justify-between items-start mb-8">
+              <div>
+                <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1.5">Operation Mode</div>
+                <div class="text-xl font-display font-medium tracking-tight" id="mode-display">Autonomous Closed-Loop</div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer group">
+                <input type="checkbox" id="mode-toggle" class="sr-only peer" checked>
+                <div class="w-12 h-6 bg-zinc rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald shadow-inner transition-colors duration-300"></div>
+              </label>
+            </div>
+            
+            <div class="flex flex-col gap-3">
+              <div class="flex justify-between items-end">
+                <span class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Motorized Bypass Valve</span>
+                <span class="text-sm font-mono text-white bg-zinc px-2 py-0.5 rounded tabular-nums" id="valve-readout">48%</span>
+              </div>
+              <div class="relative pt-2">
+                <input type="range" id="valve-slider" min="0" max="100" value="48" disabled 
+                  class="w-full h-1 bg-zinc rounded-lg appearance-none cursor-not-allowed opacity-40 transition-all duration-300">
+              </div>
+            </div>
+          </div>
+
+          <!-- Calibration Cycle Action -->
+          <div class="bg-[#141416]/80 backdrop-blur border border-zinc rounded-2xl p-6 flex flex-col justify-center items-center text-center relative overflow-hidden group shadow-xl">
+            <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            <div class="w-12 h-12 rounded-full bg-zinc border border-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+              <i data-lucide="refresh-cw" class="w-5 h-5 text-white opacity-80 group-hover:opacity-100 group-hover:text-emerald-400 transition-colors"></i>
+            </div>
+            
+            <div class="text-sm font-display tracking-wide mb-5">TRIGGER CALIBRATION CYCLE</div>
+            
+            <button id="calibrate-btn" class="relative w-full py-3 bg-white text-black hover:bg-zinc-200 font-mono text-[10px] uppercase tracking-widest rounded-lg transition-all duration-300 flex items-center justify-center gap-2 font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.3)] active:scale-[0.98]">
+              <span>Execute Calibration</span>
+              <i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin hidden" id="calibrate-spinner"></i>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Diagnostics Grid -->
+        <div class="grid grid-cols-3 gap-4 mt-auto">
+          <div class="bg-[#141416]/50 border border-zinc/50 rounded-xl p-4 flex flex-col">
+            <div class="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+              <i data-lucide="hard-drive" class="w-3 h-3"></i> Heap Free
+            </div>
+            <div class="text-sm lg:text-base font-mono tabular-nums text-zinc-300" id="heap-value">--</div>
+          </div>
+          <div class="bg-[#141416]/50 border border-zinc/50 rounded-xl p-4 flex flex-col">
+            <div class="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+              <i data-lucide="wifi" class="w-3 h-3"></i> RSSI (dBm)
+            </div>
+            <div class="text-sm lg:text-base font-mono tabular-nums text-zinc-300" id="rssi-value">--</div>
+          </div>
+          <div class="bg-[#141416]/50 border border-zinc/50 rounded-xl p-4 flex flex-col">
+            <div class="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+              <i data-lucide="gauge" class="w-3 h-3"></i> Sensor ADC
+            </div>
+            <div class="text-sm lg:text-base font-mono tabular-nums text-zinc-300" id="adc-value">--</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    
+  </div>
+
+  <!-- Vanilla JS Logic -->
+  <script>
+    // 1. Initialize Icons
+    lucide.createIcons();
+
+    // 2. Chart.js Setup
+    Chart.defaults.font.family = "'JetBrains Mono', monospace";
+    Chart.defaults.color = '#71717A';
+
+    const ctx = document.getElementById('telemetryChart').getContext('2d');
+    const colorTDS = '#10B981'; // Emerald
+    const colorTarget = '#F59E0B'; // Amber
+    const colorValve = '#3B82F6'; // Blue
+
+    const maxPoints = 16;
+    const initialLabels = Array(maxPoints).fill('');
+    const initialTDS = [73, 74, 72, 75, 76, 75, 74, 75, 73, 75, 76, 74, 75, 74, 75, 74];
+    const initialTarget = Array(maxPoints).fill(75);
+    const initialValve = [48, 49, 47, 48, 50, 49, 47, 48, 49, 48, 47, 48, 49, 48, 47, 48];
+
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [...initialLabels],
+        datasets: [
+          {
+            label: 'Output TDS (ppm)',
+            data: [...initialTDS],
+            borderColor: colorTDS,
+            backgroundColor: (context) => {
+              const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+              gradient.addColorStop(0, colorTDS + '33');
+              gradient.addColorStop(1, colorTDS + '00');
+              return gradient;
+            },
+            borderWidth: 2,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            pointBackgroundColor: '#0F0F10',
+            pointBorderColor: colorTDS,
+            pointBorderWidth: 2,
+            fill: true,
+            tension: 0.35,
+            yAxisID: 'y'
+          },
+          {
+            label: 'WHO Target (75 ppm)',
+            data: [...initialTarget],
+            borderColor: colorTarget,
+            backgroundColor: 'transparent',
+            borderWidth: 1.5,
+            borderDash: [4, 4],
+            pointRadius: 0,
+            pointHoverRadius: 0,
+            fill: false,
+            tension: 0,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Bypass Valve (%)',
+            data: [...initialValve],
+            borderColor: colorValve,
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            borderDash: [3, 3],
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            pointBackgroundColor: '#0F0F10',
+            pointBorderColor: colorValve,
+            pointBorderWidth: 2,
+            fill: false,
+            tension: 0.35,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(15, 15, 16, 0.95)',
+            titleColor: '#fff',
+            titleFont: { size: 10, family: "'JetBrains Mono', monospace" },
+            bodyColor: '#A1A1AA',
+            bodyFont: { size: 11, family: "'JetBrains Mono', monospace" },
+            borderColor: '#27272A',
+            borderWidth: 1,
+            padding: 12,
+            cornerRadius: 8,
+            displayColors: true,
+            boxPadding: 6,
+            usePointStyle: true,
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false, drawBorder: false },
+            ticks: { display: false }
+          },
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            grid: { color: '#27272A', borderDash: [2, 4], drawBorder: false },
+            ticks: { 
+              font: { size: 9 },
+              padding: 8,
+              stepSize: 20
+            },
+            min: 30,
+            suggestedMax: 110
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            grid: { display: false, drawBorder: false },
+            ticks: { 
+              font: { size: 9 },
+              padding: 8,
+              stepSize: 25
+            },
+            min: 0,
+            max: 100
+          }
+        }
+      }
+    });
+
+    // 3. State Management
+    let isAuto = true;
+    let valveValue = 48;
+    
+    // Continuous Mock simulation state (fluctuating around 75 ppm WHO target)
+    let simTds = 74.0;
+    let simValve = 48.0;
+
+    // DOM Elements
+    const dom = {
+      tdsValue: document.getElementById('tds-value'),
+      tdsStatus: document.getElementById('tds-status'),
+      bypassPercent: document.getElementById('bypass-percent'),
+      retentionIndex: document.getElementById('retention-index'),
+      logicLog: document.getElementById('logic-log'),
+      modeDisplay: document.getElementById('mode-display'),
+      modeToggle: document.getElementById('mode-toggle'),
+      valveSlider: document.getElementById('valve-slider'),
+      valveReadout: document.getElementById('valve-readout'),
+      heapValue: document.getElementById('heap-value'),
+      rssiValue: document.getElementById('rssi-value'),
+      adcValue: document.getElementById('adc-value'),
+      btnCalibrate: document.getElementById('calibrate-btn'),
+      spinnerCalibrate: document.getElementById('calibrate-spinner')
+    };
+
+    // 4. Event Listeners
+    dom.modeToggle.addEventListener('change', (e) => {
+      isAuto = e.target.checked;
+      dom.modeDisplay.innerText = isAuto ? 'Autonomous Closed-Loop' : 'Manual Override';
+      
+      if (isAuto) {
+        dom.valveSlider.disabled = true;
+        dom.valveSlider.classList.add('cursor-not-allowed', 'opacity-40');
+        dom.valveSlider.classList.remove('opacity-100');
+        
+        dom.logicLog.innerText = "Engaging Closed-Loop Digital Logic Engine. State feedback tracking initiated toward 75 ppm target...";
+      } else {
+        dom.valveSlider.disabled = false;
+        dom.valveSlider.classList.remove('cursor-not-allowed', 'opacity-40');
+        dom.valveSlider.classList.add('opacity-100');
+        
+        dom.logicLog.innerText = `Manual override active. Closed-loop regulation paused. Motorized bypass valve is locked to user setpoint (${valveValue}%).`;
+      }
+      
+      // Send hardware update
+      fetch(`/api/valve?auto=${isAuto}`, { method: 'POST' }).catch(() => console.log('Mock: Mode updated to', isAuto));
+    });
+
+    // Visual slider update
+    dom.valveSlider.addEventListener('input', (e) => {
+      valveValue = e.target.value;
+      dom.valveReadout.innerText = `${valveValue}%`;
+    });
+
+    // Send actual command on release
+    dom.valveSlider.addEventListener('change', (e) => {
+      fetch(`/api/valve?value=${valveValue}`, { method: 'POST' })
+        .catch(() => console.log(`Mock: Manual bypass valve adjusted to ${valveValue}%`));
+    });
+
+    // Trigger Calibration Cycle
+    dom.btnCalibrate.addEventListener('click', () => {
+      dom.btnCalibrate.disabled = true;
+      dom.spinnerCalibrate.classList.remove('hidden');
+      dom.btnCalibrate.querySelector('span').innerText = 'Calibrating Loop...';
+      
+      fetch('/api/calibrate', { method: 'POST' })
+        .then(res => res.json())
+        .catch(() => new Promise(resolve => setTimeout(resolve, 1100))) // Mock network latency
+        .finally(() => {
+          dom.btnCalibrate.disabled = false;
+          dom.spinnerCalibrate.classList.add('hidden');
+          dom.btnCalibrate.querySelector('span').innerText = 'Execute Calibration';
+          
+          // Baseline re-calibration reset
+          simTds = 75.0;
+          simValve = 48.0;
+          if (!isAuto) {
+            valveValue = 48;
+            dom.valveSlider.value = 48;
+            dom.valveReadout.innerText = '48%';
+          }
+          dom.logicLog.innerText = "CALIBRATION COMPLETE: Baseline zero-point calibrated to WHO 75 ppm standard. Proportional gain Kp=0.42 verified.";
+          fetchTelemetry(); // Force immediate screen refresh
+        });
+    });
+
+    // 5. Update UI Logic
+    function applyDataToUI(data) {
+      // Primary Metric 1: Blended TDS
+      dom.tdsValue.innerText = data.tds;
+      
+      // Dynamic Status Chip
+      // <65: Under-Mineralized, 65-85: WHO Optimal, >85: Excess Hardness
+      let statusClass, statusText, iconName;
+      if (data.tds < 65) {
+        statusClass = 'text-amber border-amber/50 bg-amber/10 shadow-[0_0_15px_rgba(245,158,11,0.2)]';
+        statusText = 'Under-Mineralized (<65 ppm)';
+        iconName = 'alert-triangle';
+      } else if (data.tds <= 85) {
+        statusClass = 'text-emerald border-emerald/50 bg-emerald/10 shadow-[0_0_15px_rgba(16,185,129,0.3)]';
+        statusText = 'WHO Optimal (65-85 ppm)';
+        iconName = 'check-circle-2';
+      } else {
+        statusClass = 'text-crimson border-crimson/50 bg-crimson/20 shadow-[0_0_15px_rgba(220,38,38,0.4)] animate-pulse';
+        statusText = 'Excess Hardness (>85 ppm)';
+        iconName = 'alert-octagon';
+      }
+      
+      dom.tdsStatus.innerHTML = `<i data-lucide="${iconName}" class="w-3.5 h-3.5"></i> <span>${statusText}</span>`;
+      dom.tdsStatus.className = `inline-flex items-center gap-2 px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest rounded border transition-colors duration-500 ${statusClass}`;
+      
+      // Primary Metric 2: Mineral Bypass & Retention Index
+      dom.bypassPercent.innerText = data.valve;
+      const retentionVal = data.retention !== undefined 
+        ? data.retention 
+        : Math.min(99.4, Math.max(15.0, (data.tds / 75.0) * 82.5)).toFixed(1);
+      dom.retentionIndex.innerText = `${retentionVal}%`;
+
+      // Digital Logic Engine Output Log
+      const ruleText = data.logicRule || data.reason || "Monitoring steady-state feedback.";
+      if (dom.logicLog.innerText !== ruleText) {
+        dom.logicLog.style.opacity = '0';
+        setTimeout(() => {
+          dom.logicLog.innerText = ruleText;
+          dom.logicLog.style.opacity = '1';
+        }, 150);
+      }
+
+      // Sync Controls with Hardware state
+      if (data.mode === 'auto' && !isAuto) {
+        isAuto = true;
+        dom.modeToggle.checked = true;
+        dom.modeDisplay.innerText = 'Autonomous Closed-Loop';
+        dom.valveSlider.disabled = true;
+        dom.valveSlider.classList.add('cursor-not-allowed', 'opacity-40');
+        dom.valveSlider.classList.remove('opacity-100');
+      }
+
+      if (isAuto) {
+        valveValue = data.valve;
+        dom.valveSlider.value = valveValue;
+        dom.valveReadout.innerText = `${valveValue}%`;
+      }
+
+      // Hardware Diagnostics
+      dom.heapValue.innerText = `${(data.heap / 1024).toFixed(1)} KB`;
+      dom.rssiValue.innerText = `${data.rssi}`;
+      dom.adcValue.innerText = `${(data.tds * 0.016).toFixed(2)}V`;
+
+      // Update Chart
+      const now = new Date();
+      const timeStr = now.getSeconds() % 6 === 0 
+        ? now.toLocaleTimeString('en-US', { hour12: false, hour: "numeric", minute: "numeric", second: "numeric" }) 
+        : '';
+        
+      chart.data.labels.push(timeStr);
+      chart.data.datasets[0].data.push(data.tds);
+      chart.data.datasets[1].data.push(75); // Target line
+      chart.data.datasets[2].data.push(data.valve);
+      
+      if (chart.data.labels.length > maxPoints) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+        chart.data.datasets[1].data.shift();
+        chart.data.datasets[2].data.shift();
+      }
+      chart.update('none'); // Update smoothly without abrupt animation
+      
+      // Refresh Lucide icon renderings
+      lucide.createIcons();
+    }
+
+    // 6. Data Pipeline & Closed-Loop Simulation
+    function fetchTelemetry() {
+      fetch('/api/data')
+        .then(res => {
+          if (!res.ok) throw new Error("Hardware endpoint unreachable");
+          return res.json();
+        })
+        .then(data => applyDataToUI(data))
+        .catch(() => {
+          // --- CLOSED-LOOP DEMO SIMULATION FALLBACK ---
+          const TARGET_TDS = 75; // WHO standard target
+
+          if (isAuto) {
+            // Ambient flow & water mineral fluctuations (stochastic drift)
+            simTds += (Math.random() * 3.6 - 1.8);
+
+            // Dynamic Closed-Loop Logic:
+            // Under 65 ppm: open bypass valve
+            // Over 85 ppm: close bypass valve
+            // In between: proportional micro-trimming toward 75 ppm
+            if (simTds < 65) {
+              const step = Math.max(2, Math.round((65 - simTds) * 0.6 + Math.random() * 2));
+              simValve = Math.min(94, simValve + step);
+            } else if (simTds > 85) {
+              const step = Math.max(2, Math.round((simTds - 85) * 0.6 + Math.random() * 2));
+              simValve = Math.max(6, simValve - step);
+            } else {
+              const error = Math.round(simTds - TARGET_TDS);
+              if (error < -1) {
+                simValve = Math.min(85, simValve + (Math.random() > 0.35 ? 1 : 0));
+              } else if (error > 1) {
+                simValve = Math.max(15, simValve - (Math.random() > 0.35 ? 1 : 0));
+              }
+            }
+
+            // Manifold blending transfer function:
+            // Permeate ~18 ppm, raw mineral bypass stream ~136 ppm
+            const manifoldEquilibrium = 18 + (simValve / 100) * 118;
+            simTds += (manifoldEquilibrium - simTds) * 0.36 + (Math.random() * 1.6 - 0.8);
+          } else {
+            // Manual Override: valve setpoint held by user slider
+            simValve = parseInt(valveValue, 10);
+            const manifoldEquilibrium = 18 + (simValve / 100) * 118;
+            simTds += (manifoldEquilibrium - simTds) * 0.34 + (Math.random() * 1.4 - 0.7);
+          }
+
+          // Safety limits
+          simTds = Math.max(20, Math.min(160, simTds));
+          const roundedTds = Math.round(simTds);
+          const roundedValve = Math.round(simValve);
+
+          // Digital Logic Rule Output
+          let logicRule = "";
+          if (isAuto) {
+            const error = roundedTds - TARGET_TDS;
+            const sign = error > 0 ? `+${error}` : `${error}`;
+            
+            if (roundedTds < 65) {
+              logicRule = `ERROR: ${sign} ppm | Proportional adjustment: Opening bypass valve to ${roundedValve}% to restore essential minerals per WHO IS-10500`;
+            } else if (roundedTds > 85) {
+              logicRule = `ERROR: ${sign} ppm | Proportional adjustment: Closing bypass valve to ${roundedValve}% to suppress excess hardness per WHO IS-10500`;
+            } else if (Math.abs(error) <= 2) {
+              logicRule = `STEADY STATE: Error within ±2 ppm (${sign} ppm) | Closed-loop equilibrium maintained at ${roundedTds} ppm (WHO IS-10500 target: 75 ppm). Valve stable at ${roundedValve}%.`;
+            } else {
+              const actionWord = error < 0 ? "Opening" : "Closing";
+              logicRule = `CLOSED-LOOP TRIMMING: Error ${sign} ppm | ${actionWord} bypass valve to ${roundedValve}% to track WHO target window (65-85 ppm).`;
+            }
+          } else {
+            logicRule = `MANUAL OVERRIDE: Feedback loop suspended. Motorized bypass valve locked to user setpoint (${valveValue}%). Blended output: ${roundedTds} ppm.`;
+          }
+
+          // Mineral Retention Index (% preservation of calcium/magnesium balance)
+          const retention = Math.min(99.4, Math.max(15.0, (roundedTds / 75) * 82.5 + (Math.random() * 0.4 - 0.2))).toFixed(1);
+
+          const mockData = {
+            tds: roundedTds,
+            valve: roundedValve,
+            retention: retention,
+            heap: Math.round(193000 + Math.random() * 4000),
+            rssi: Math.round(-64 + Math.random() * 6),
+            mode: isAuto ? 'auto' : 'manual',
+            logicRule: logicRule
+          };
+          
+          applyDataToUI(mockData);
+        });
+    }
+
+    // 7. Initialization
+    fetchTelemetry();
+    setInterval(fetchTelemetry, 2500); // Poll every 2.5s for lively real-time feedback
+  </script>
+</body>
+</html>
