@@ -57,7 +57,8 @@ Instead of hosting a separate website, the entire frontend dashboard is packed i
 
 Because Tinkercad doesn't support 32-bit ESP32 boards, we built and verified the circuit topology on **Wokwi**.
 
-<img width="811" height="740" alt="Screenshot From 2026-10-21 20-59-50" src="https://github.com/user-attachments/assets/da5088ae-2258-4e87-ac01-bfaafbae6265" />
+<img width="908" height="472" alt="Screenshot From 2026-10-25 15-28-03" src="https://github.com/user-attachments/assets/6068f168-a463-42d4-8a80-48ca91816102" />
+
 
 ## Why We Chose This Specific Hardware
 
